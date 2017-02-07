@@ -441,6 +441,13 @@ open class WebSocket : NSObject, StreamDelegate {
         mutex.unlock()
         return canWork
     }
+    private var scheme: String {
+         #if swift(>=2.3)
+             return url.scheme!
+         #else
+             return url.scheme
+         #endif
+     }
     /// The shared processing queue used for all WebSocket.
     private static let sharedWorkQueue = DispatchQueue(label: "com.vluxe.starscream.websocket.pusher", attributes: [])
 
@@ -545,7 +552,7 @@ open class WebSocket : NSObject, StreamDelegate {
 
         var port = url.port
         if port == nil {
-            if supportedSSLSchemes.contains(url.scheme!) {
+            if supportedSSLSchemes.contains(scheme) {
                 port = 443
             } else {
                 port = 80
@@ -612,7 +619,7 @@ open class WebSocket : NSObject, StreamDelegate {
         guard let inStream = inputStream, let outStream = outputStream else { return }
         inStream.delegate = self
         outStream.delegate = self
-        if supportedSSLSchemes.contains(url.scheme!) {
+        if supportedSSLSchemes.contains(scheme) {
             inStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL as AnyObject, forKey: Stream.PropertyKey.socketSecurityLevelKey)
             outStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL as AnyObject, forKey: Stream.PropertyKey.socketSecurityLevelKey)
             if disableSSLCertValidation {
