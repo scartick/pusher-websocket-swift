@@ -75,7 +75,13 @@ open class SSLSecurity : SSLTrustValidator {
     var certificates: [Data]? //the certificates
     var pubKeys: [SecKey]? //the public keys
     var usePublicKeys = false //use public keys or certificate validation?
-
+    #if swift(>=2.3)
+         let unspecified = SecTrustResultType(rawValue: SecTrustResultType.Unspecified.rawValue)
+         let proceed = SecTrustResultType(rawValue: SecTrustResultType.Proceed.rawValue)
+     #else
+         let unspecified = SecTrustResultType(kSecTrustResultUnspecified)
+         let proceed = SecTrustResultType(kSecTrustResultProceed)
+    #endif
     /**
     Use certs from main app bundle
 
@@ -180,9 +186,9 @@ open class SSLSecurity : SSLTrustValidator {
                 collect.append(SecCertificateCreateWithData(nil,cert as CFData)!)
             }
             SecTrustSetAnchorCertificates(trust,collect as NSArray)
-            var result: SecTrustResultType = .unspecified
+            var result: SecTrustResultType = unspecified
             SecTrustEvaluate(trust,&result)
-            if result == .unspecified || result == .proceed {
+            if result == unspecified || result == proceed {
                 var trustedCount = 0
                 for serverCert in serverCerts {
                     for cert in certs {
@@ -225,7 +231,7 @@ open class SSLSecurity : SSLTrustValidator {
         SecTrustCreateWithCertificates(cert, policy, &possibleTrust)
 
         guard let trust = possibleTrust else { return nil }
-        var result: SecTrustResultType = .unspecified
+        var result: SecTrustResultType = unspecified
         SecTrustEvaluate(trust, &result)
         return SecTrustCopyPublicKey(trust)
     }
